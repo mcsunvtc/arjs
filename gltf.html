@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+
+<head>
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <title>AR - HIRO - TREX GLTF - Your Name</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/110/three.js"></script>
+    <script src='js/GLTFLoader.js'></script>
+    <script src="js/ar.js"></script>
+</head>
+
+<body style='margin : 0px; overflow: hidden; font-family: Monospace;'>
+    <!--
+Example created by Lee Stemkoski: https://github.com/stemkoski
+Based on the AR.js library and examples created by Jerome Etienne: https://github.com/jeromeetienne/AR.js/
+-->
+
+    <script>
+        var scene, camera, renderer;
+        var arToolkitSource, arToolkitContext;
+        var markerRoot1;
+        var mesh1;
+        initialize();
+        animate();
+        function initialize() {
+            scene = new THREE.Scene();
+            let ambientLight = new THREE.AmbientLight(0xffffff, 1.0);
+            scene.add(ambientLight);
+
+            camera = new THREE.Camera();
+            scene.add(camera);
+            renderer = new THREE.WebGLRenderer({
+                antialias: true,
+                alpha: true
+            });
+            renderer.setClearColor(new THREE.Color('lightgrey'), 0)
+            renderer.setSize(640, 480);
+            renderer.domElement.style.position = 'absolute'
+            renderer.domElement.style.top = '0px'
+            renderer.domElement.style.left = '0px'
+            document.body.appendChild(renderer.domElement);
+            arToolkitSource = new THREEx.ArToolkitSource({
+                sourceType: 'webcam',
+            });
+            function onResize() {
+                arToolkitSource.onResize()
+                arToolkitSource.copySizeTo(renderer.domElement)
+                14
+                if (arToolkitContext.arController !== null) {
+                    arToolkitSource.copySizeTo(arToolkitContext.arController.canvas)
+                }
+            }
+            arToolkitSource.init(function onReady() {
+                setTimeout(() => {
+                    console.log("onready")
+                    onResize()
+                }, 2000);
+            });
+            // handle resize event
+            window.addEventListener('resize', function () {
+                onResize()
+            });
+
+            // create atToolkitContext
+            arToolkitContext = new THREEx.ArToolkitContext({
+                cameraParametersUrl: 'data/camera_para.dat',
+                detectionMode: 'mono'
+            });
+            // copy projection matrix to camera when initialization complete
+            arToolkitContext.init(function onCompleted() {
+                camera.projectionMatrix.copy(arToolkitContext.getProjectionMatrix());
+            });
+            markerRoot1 = new THREE.Group();
+            scene.add(markerRoot1);
+            let markerControls1 = new THREEx.ArMarkerControls(arToolkitContext, markerRoot1, {
+                type: 'pattern', patternUrl: "data/letterD.patt",
+            })
+
+            let geometry1 = new THREE.PlaneBufferGeometry(1, 1, 4, 4);
+            let loader = new THREE.TextureLoader();
+            // let texture = loader.load( 'images/earth.jpg', render );
+            let material1 = new THREE.MeshBasicMaterial({ color: 0x0000ff, opacity: 0.5 });
+            mesh1 = new THREE.Mesh(geometry1, material1);
+            mesh1.rotation.x = -Math.PI / 2;
+            markerRoot1.add(mesh1);
+            function onProgress(xhr) { if (xhr.total > 0) console.log((xhr.loaded / xhr.total * 100) + '% loaded'); }
+            function onError(xhr) { console.log('An error happened'); }
+            // Instantiate a loader
+            let loader2 = new THREE.GLTFLoader();
+
+            // Load a glTF resource
+            loader2.load(
+                // resource URL
+                'models/trex/scene.gltf',
+                // called when the resource is loaded
+                function (gltf) {
+                    gltf.scene.scale.set(0.05, 0.05, 0.05);
+                    markerRoot1.add(gltf.scene);
+                },
+                onProgress, onError);
+        }
+        function update() {
+            // update artoolkit on every frame
+            if (arToolkitSource.ready !== false)
+                arToolkitContext.update(arToolkitSource.domElement);
+        }
+        18
+        function render() {
+            renderer.render(scene, camera);
+        }
+        function animate() {
+            requestAnimationFrame(animate);
+            update();
+            render();
+        }
+    </script>
+</body>
+
+</html>
