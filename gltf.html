@@ -72,12 +72,12 @@ Based on the AR.js library and examples created by Jerome Etienne: https://githu
             markerRoot1 = new THREE.Group();
             scene.add(markerRoot1);
             let markerControls1 = new THREEx.ArMarkerControls(arToolkitContext, markerRoot1, {
-                type: 'pattern', patternUrl: "data/letterD.patt",
+                type: 'pattern', patternUrl: "data/letterA.patt",
             })
 
             let geometry1 = new THREE.PlaneBufferGeometry(1, 1, 4, 4);
             let loader = new THREE.TextureLoader();
-            // let texture = loader.load( 'images/earth.jpg', render );
+         
             let material1 = new THREE.MeshBasicMaterial({ color: 0x0000ff, opacity: 0.5 });
             mesh1 = new THREE.Mesh(geometry1, material1);
             mesh1.rotation.x = -Math.PI / 2;
@@ -90,7 +90,7 @@ Based on the AR.js library and examples created by Jerome Etienne: https://githu
             // Load a glTF resource
             loader2.load(
                 // resource URL
-                'models/trex/scene.gltf',
+                'trex/scene.gltf',
                 // called when the resource is loaded
                 function (gltf) {
                     gltf.scene.scale.set(0.05, 0.05, 0.05);
