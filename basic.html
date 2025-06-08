@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+<meta charset="UTF-8">
+<title>Basic AR - HIRO marker - Your Name</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/110/three.js"></script>
+<script src="js/ar.js"></script>
+
+<body style='margin : 0px; overflow: hidden; font-family: Monospace;'>
+    <h2 style='position : fixed; top:10px; left:10px;'> Basic AR - HIRO marker - by Your Name</h2>
+    <script>
+        var renderer = new THREE.WebGLRenderer({
+            antialias: true,
+            alpha: true
+        });
+        renderer.setClearColor(new THREE.Color('lightgrey'), 0)
+        renderer.setSize(640, 480);
+        renderer.domElement.style.position = 'absolute'
+        renderer.domElement.style.top = '0px'
+        renderer.domElement.style.left = '0px'
+        document.body.appendChild(renderer.domElement);
+
+        var scene = new THREE.Scene();
+        var camera = new THREE.Camera();
+        scene.add(camera);
+
+        var arToolkitSource = new THREEx.ArToolkitSource({
+            sourceType: 'webcam',
+        })
+        arToolkitSource.init(function onReady() {
+            setTimeout(() => {
+                onResize()
+            }, 2000);
+        })
+
+        window.addEventListener('resize', function () {
+            onResize()
+        })
+
+        function onResize() {
+            arToolkitSource.onResizeElement()
+            arToolkitSource.copyElementSizeTo(renderer.domElement)
+            if (arToolkitContext.arController !== null) {
+                arToolkitSource.copyElementSizeTo(arToolkitContext.arController.canvas)
+            }
+        }
+
+        // create atToolkitContext
+        var arToolkitContext = new THREEx.ArToolkitContext({
+            cameraParametersUrl: 'data/camera_para.dat',
+            detectionMode: 'mono',
+        })
+
+        arToolkitContext.init(function onCompleted() {
+            // copy projection matrix to camera
+            camera.projectionMatrix.copy(arToolkitContext.getProjectionMatrix());
+        })
+
+        // init controls for camera
+        var markerControls = new THREEx.ArMarkerControls(arToolkitContext, camera, {
+            type: 'pattern',
+            patternUrl: 'data/hiro.patt',
+            changeMatrixMode: 'cameraTransformMatrix'
+        })
+        // add 2 Geometric Objects
+        var geometry = new THREE.CubeGeometry(1, 1, 1);
+        var material = new THREE.MeshNormalMaterial({
+            transparent: true,
+            opacity: 0.5,
+            side: THREE.DoubleSide
+        });
+        var mesh = new THREE.Mesh(geometry, material);
+        mesh.position.y = geometry.parameters.height / 2
+        scene.add(mesh);
+
+        //var geometry2 = new THREE.TorusKnotGeometry(0.3,0.1,64,16);
+        //THREE.IcosahedronGeometry(radius, detail);
+        var geometry2 = new THREE.IcosahedronGeometry(0.5, 0)
+        var material2 = new THREE.MeshNormalMaterial();
+        var mesh2 = new THREE.Mesh(geometry2, material2);
+        mesh2.position.y = 0.5
+        scene.add(mesh2);
+        scene.visible = false
+        var clock = new THREE.Clock();
+        animate();
+        function animate() {
+            mesh2.rotation.x += Math.PI * clock.getDelta();
+            if (arToolkitSource.ready === true) {
+                arToolkitContext.update(arToolkitSource.domElement)
+                // update scene.visible if the marker is seen
+                scene.visible = camera.visible
+            }
+            renderer.render(scene, camera);
+            requestAnimationFrame(animate);
+        }
+
+    </script>
+</body>
